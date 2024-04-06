@@ -1,0 +1,261 @@
+document.addEventListener('DOMContentLoaded', () => {
+  graphic()
+})
+
+function graphic() {
+  // fetch ('data or endpoint petition')
+  fetch('average_crop_indices_farm-0000000014_04-A-1-4-121-907.json')
+    .then((response) => response.json())
+    .then((jsonData) => {
+      const jsonDates = Object.values(jsonData.data.Dates)
+      const acronyms = Object.values(jsonData.acronyms)
+      console.log(acronyms)
+      console.log(jsonDates)
+
+      const labels = jsonDates
+      console.log(labels)
+      const colors = [
+        '#F8FC21',
+        '#8DDB95',
+        '#19B5EE',
+        '#777777',
+        '#E4684E',
+        '#E6B333',
+        '#3366E6',
+        '#999966',
+        '#99FF99',
+        '#B34D4D',
+      ]
+
+      const datasets = acronyms.map((label, index) => ({
+        label,
+        data: jsonData.data[Object.keys(jsonData.data)[index + 1]],
+        borderColor: colors[index % colors.length],
+        backgroundColor: colors[index % colors.length],
+        borderWidth: 3,
+        tension: 0.1,
+        pointHitRadius: 10,
+        spanGaps: true,
+        fill: false,
+        pointRadius: (context) => {
+          return 0
+        },
+      }))
+      console.log(datasets)
+
+      const gridColor = '#0070F3'
+      const gridColor2 = '#4c8aba'
+      const textColor = '#FFFFFF'
+
+      const config = {
+        type: 'line',
+        data: {
+          labels,
+          datasets,
+        },
+        options: {
+          maintainAspectRatio: false,
+          responsive: true,
+          animation: true,
+          transitions: {
+            show: {
+              animations: {
+                x: {
+                  from: 0,
+                },
+                y: {
+                  from: 0,
+                },
+              },
+            },
+            hide: {
+              animations: {
+                x: {
+                  to: 0,
+                },
+                y: {
+                  to: 0,
+                },
+              },
+            },
+          },
+          events: ['mouseout', 'click', 'touchstart', 'touchmove'],
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          scales: {
+            y: {
+              type: 'linear',
+              min: 0,
+              max: 1,
+              position: 'left',
+              stack: 'y',
+              ticks: {
+                stepSize: 0.1,
+                color: textColor,
+                beginAtZero: true,
+              },
+              grid: {
+                color: gridColor,
+              },
+            },
+            x: {
+              stacked: true,
+              offset: true,
+              ticks: {
+                color: textColor,
+                beginAtZero: true,
+              },
+              grid: {
+                display: true,
+                color: gridColor,
+                offset: false,
+                drawOnChartArea: true,
+                drawTicks: true,
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              enabled: true,
+            },
+            htmlLegend: {
+              containerID: 'legend-container',
+            },
+            legend: {
+              display: false,
+              position: 'top',
+              align: 'center',
+              labels: {
+                color: textColor,
+                padding: 10,
+                boxHeight: 14,
+                font: {
+                  size: 14,
+                },
+              },
+            },
+          },
+        },
+        plugins: [htmlLegendPlugin],
+      }
+      const ctx = document.getElementById('chart').getContext('2d')
+      new Chart(ctx, config)
+    })
+}
+
+// design to HTML Legend
+const getOrCreateLegendList = (chart, id) => {
+  const legendContainer = document.getElementById(id)
+  let listContainer = legendContainer.querySelector('ul')
+
+  if (!listContainer) {
+    listContainer = document.createElement('ul')
+    if (window.matchMedia('(max-width: 400px)').matches) {
+      listContainer.classList.add('chartLegend')
+      listContainer.style.display = 'flex'
+      listContainer.style.flexDirection = 'row'
+      listContainer.style.margin = 0
+      listContainer.style.padding = 0
+      listContainer.style.flexWrap = 'wrap'
+      listContainer.style.alignItems = 'center'
+      listContainer.style.justifyContent = 'space-between'
+    } else {
+      listContainer.style.display = 'flex'
+      listContainer.style.flexDirection = 'row'
+      listContainer.style.margin = 0
+      listContainer.style.padding = 0
+    }
+    legendContainer.appendChild(listContainer)
+  }
+
+  return listContainer
+}
+
+const htmlLegendPlugin = {
+  id: 'htmlLegend',
+  afterUpdate(chart, args, options) {
+    const ul = getOrCreateLegendList(chart, options.containerID)
+
+    // Remove old legend items
+    while (ul.firstChild) {
+      ul.firstChild.remove()
+    }
+
+    // Reuse the built-in legendItems generator
+    const items = chart.options.plugins.legend.labels.generateLabels(chart)
+
+    items.forEach((item) => {
+      const li = document.createElement('li')
+      if (window.matchMedia('(max-width: 400px)').matches) {
+        li.style.alignItems = 'center'
+        li.style.cursor = 'pointer'
+        li.style.display = 'flex'
+        li.style.flexDirection = 'row'
+        li.style.margin = '1px 15px'
+        li.style.justifyContent = 'start'
+        li.style.height = '12px'
+        li.style.width = '140px'
+        li.style.fontSize = '12px'
+      } else {
+        li.style.alignItems = 'center'
+        li.style.cursor = 'pointer'
+        li.style.display = 'flex'
+        li.style.flexDirection = 'row'
+        li.style.marginLeft = '20px'
+      }
+
+      li.onclick = () => {
+        const { type } = chart.config
+        if (type === 'pie' || type === 'doughnut') {
+          // Pie and doughnut charts only have a single dataset and visibility is per item
+          chart.toggleDataVisibility(item.index)
+        } else {
+          chart.setDatasetVisibility(
+            item.datasetIndex,
+            !chart.isDatasetVisible(item.datasetIndex)
+          )
+        }
+        chart.update()
+      }
+
+      // Color box
+      const boxSpan = document.createElement('span')
+      if (window.matchMedia('(max-width: 400px)').matches) {
+        boxSpan.style.background = item.fillStyle
+        boxSpan.style.borderColor = item.strokeStyle
+        boxSpan.style.borderWidth = item.lineWidth + 'px'
+        boxSpan.style.display = 'flex'
+        boxSpan.style.flexShrink = 0
+        boxSpan.style.height = '12px'
+        boxSpan.style.width = '24px'
+        boxSpan.style.marginRight = '10px'
+      } else {
+        boxSpan.style.background = item.fillStyle
+        boxSpan.style.borderColor = item.strokeStyle
+        boxSpan.style.borderWidth = item.lineWidth + 'px'
+        boxSpan.style.display = 'inline-block'
+        boxSpan.style.flexShrink = 0
+        boxSpan.style.height = '20px'
+        boxSpan.style.width = '40px'
+        boxSpan.style.marginRight = '10px'
+        
+      }
+
+      // Text
+      const textContainer = document.createElement('p')
+      textContainer.style.color = item.fontColor
+      textContainer.style.margin = 0
+      textContainer.style.padding = 0
+      textContainer.style.textDecoration = item.hidden ? 'line-through' : ''
+
+      const text = document.createTextNode(item.text)
+      textContainer.appendChild(text)
+
+      li.appendChild(boxSpan)
+      li.appendChild(textContainer)
+      ul.appendChild(li)
+    })
+  },
+}
