@@ -1,10 +1,12 @@
-document.addEventListener('DOMContentLoaded', () => {
-  graphic()
-})
+function formatDate(date) {
+  const options = { month: 'short' };
+  const dateObj = new Date(date);
+  return `${dateObj.getDate()} ${dateObj.toLocaleString('es-ES', options)}`;
+}
 
-function graphic() {
+function graphic(crop_indices_url) {
   // fetch ('data or endpoint petition')
-  fetch('average_crop_indices_farm-0000000014_04-A-1-4-121-907.json')
+  fetch(crop_indices_url)
     .then((response) => response.json())
     .then((jsonData) => {
       const jsonDates = Object.values(jsonData.data.Dates)
@@ -12,7 +14,7 @@ function graphic() {
       console.log(acronyms)
       console.log(jsonDates)
 
-      const labels = jsonDates
+      const labels = jsonDates.map(formatDate);
       console.log(labels)
       const colors = [
         '#F8FC21',
@@ -40,11 +42,17 @@ function graphic() {
         pointRadius: (context) => {
           return 0
         },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              return `${label}: ${context.parsed.y.toFixed(2)}`
+            },
+          },
+        },
       }))
       console.log(datasets)
 
       const gridColor = '#0070F3'
-      const gridColor2 = '#4c8aba'
       const textColor = '#FFFFFF'
 
       const config = {
@@ -102,7 +110,7 @@ function graphic() {
             },
             x: {
               stacked: true,
-              offset: true,
+              offset: false,
               ticks: {
                 color: textColor,
                 beginAtZero: true,
@@ -154,11 +162,12 @@ const getOrCreateLegendList = (chart, id) => {
     listContainer = document.createElement('ul')
     if (window.matchMedia('(max-width: 400px)').matches) {
       listContainer.classList.add('chartLegend')
-      listContainer.style.display = 'flex'
+      listContainer.style.display = 'grid'
+      listContainer.style.gridTemplateColumns = '120px 120px'
+      listContainer.style.gridTemplateRows = '12px 12px 12px 12px'
       listContainer.style.flexDirection = 'row'
       listContainer.style.margin = 0
       listContainer.style.padding = 0
-      listContainer.style.flexWrap = 'wrap'
       listContainer.style.alignItems = 'center'
       listContainer.style.justifyContent = 'space-between'
     } else {
@@ -198,12 +207,16 @@ const htmlLegendPlugin = {
         li.style.height = '12px'
         li.style.width = '140px'
         li.style.fontSize = '12px'
+        ;(li.style.fontFamily = 'Inter'), 'sans-serif'
       } else {
         li.style.alignItems = 'center'
         li.style.cursor = 'pointer'
         li.style.display = 'flex'
         li.style.flexDirection = 'row'
-        li.style.marginLeft = '20px'
+        li.style.marginLeft = '10px'
+        li.style.justifyContent = 'center'
+        li.style.fontSize = '12px'
+        ;(li.style.fontFamily = 'Inter'), 'sans-serif'
       }
 
       li.onclick = () => {
@@ -229,18 +242,17 @@ const htmlLegendPlugin = {
         boxSpan.style.display = 'flex'
         boxSpan.style.flexShrink = 0
         boxSpan.style.height = '12px'
-        boxSpan.style.width = '24px'
         boxSpan.style.marginRight = '10px'
+        boxSpan.style.width = '12px'
       } else {
         boxSpan.style.background = item.fillStyle
         boxSpan.style.borderColor = item.strokeStyle
         boxSpan.style.borderWidth = item.lineWidth + 'px'
         boxSpan.style.display = 'inline-block'
         boxSpan.style.flexShrink = 0
-        boxSpan.style.height = '20px'
-        boxSpan.style.width = '40px'
+        boxSpan.style.height = '12px'
+        boxSpan.style.width = '12px'
         boxSpan.style.marginRight = '10px'
-        
       }
 
       // Text
