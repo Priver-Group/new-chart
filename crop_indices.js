@@ -1,13 +1,33 @@
-function formatDate(date) {
-  const options = { month: 'short' }
-  const dateObj = new Date(date)
-  return `${dateObj.getDate()} ${dateObj.toLocaleString('es-ES', options)}`
+const monthNames = {
+  Jan: 'jan',
+  Feb: 'feb',
+  Mar: 'mar',
+  Apr: 'apr',
+  May: 'may',
+  Jun: 'jun',
+  Jul: 'jul',
+  Aug: 'aug',
+  Sep: 'sep',
+  Oct: 'oct',
+  Nov: 'nov',
+  Dec: 'dec',
+}
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  date.setDate(date.getDate() + 1)
+  return `${date.getDate()} ${
+    monthNames[
+      date.toLocaleString('en-US', {
+        month: 'short',
+      })
+    ]
+  }`
 }
 
 let maxYValue = 0.6
 
 function graphic(crop_indices_url) {
-  // fetch ('data or endpoint petition')
   fetch(crop_indices_url)
     .then((response) => response.json())
     .then((jsonData) => {
@@ -38,7 +58,7 @@ function graphic(crop_indices_url) {
         backgroundColor: colors[index % colors.length],
         borderWidth: 3,
         tension:
-          label === 'Humedad del Suelo' || label === 'Área afectada' ? 0 : 0.2,
+          label === 'Humedad del Suelo' || label === 'Área afectada' ? 0 : 0.3,
         pointHitRadius: 10,
         spanGaps: true,
         fill: false,
@@ -120,11 +140,17 @@ function graphic(crop_indices_url) {
               },
             },
             x: {
-              stacked: true,
+              stacked: false,
               offset: false,
               ticks: {
                 color: textColor,
                 beginAtZero: true,
+                minRotation: window.matchMedia('(max-width: 480px)').matches
+                  ? 45
+                  : 0,
+                maxRotation: window.matchMedia('(max-width: 480px)').matches
+                  ? 45
+                  : 0,
               },
               grid: {
                 display: true,
@@ -174,13 +200,13 @@ const getOrCreateLegendList = (chart, id) => {
     if (window.matchMedia('(max-width: 480px)').matches) {
       listContainer.classList.add('chartLegend')
       listContainer.style.display = 'grid'
-      listContainer.style.gridTemplateColumns = '170px 140px'
+      listContainer.style.gridTemplateColumns = '170px 170px'
       listContainer.style.gridTemplateRows = '12px 12px 12px'
       listContainer.style.flexDirection = 'row'
       listContainer.style.margin = 0
       listContainer.style.padding = 0
       listContainer.style.alignItems = 'center'
-      listContainer.style.justifyContent = 'space-between'
+      listContainer.style.justifyContent = 'center'
     } else {
       listContainer.style.display = 'flex'
       listContainer.style.flexDirection = 'row'
@@ -216,9 +242,9 @@ const htmlLegendPlugin = {
         li.style.margin = '1px 5px'
         li.style.justifyContent = 'start'
         li.style.height = '12px'
-        li.style.width = '180px'
+        li.style.width = '170px'
         li.style.fontSize = '11px'
-        li.style.fontFamily = 'Inter', 'sans-serif'
+        ;(li.style.fontFamily = 'Inter'), 'sans-serif'
       } else {
         li.style.alignItems = 'center'
         li.style.cursor = 'pointer'
@@ -227,7 +253,7 @@ const htmlLegendPlugin = {
         li.style.marginLeft = '10px'
         li.style.justifyContent = 'center'
         li.style.fontSize = '12px'
-        li.style.fontFamily = 'Inter', 'sans-serif'
+        ;(li.style.fontFamily = 'Inter'), 'sans-serif'
       }
 
       li.onclick = () => {
