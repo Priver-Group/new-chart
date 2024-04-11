@@ -1,8 +1,10 @@
 function formatDate(date) {
-  const options = { month: 'short' };
-  const dateObj = new Date(date);
-  return `${dateObj.getDate()} ${dateObj.toLocaleString('es-ES', options)}`;
+  const options = { month: 'short' }
+  const dateObj = new Date(date)
+  return `${dateObj.getDate()} ${dateObj.toLocaleString('es-ES', options)}`
 }
+
+let maxYValue = 0.6
 
 function graphic(crop_indices_url) {
   // fetch ('data or endpoint petition')
@@ -14,7 +16,7 @@ function graphic(crop_indices_url) {
       console.log(acronyms)
       console.log(jsonDates)
 
-      const labels = jsonDates.map(formatDate);
+      const labels = jsonDates.map(formatDate)
       console.log(labels)
       const colors = [
         '#F8FC21',
@@ -35,7 +37,8 @@ function graphic(crop_indices_url) {
         borderColor: colors[index % colors.length],
         backgroundColor: colors[index % colors.length],
         borderWidth: 3,
-        tension: 0.1,
+        tension:
+          label === 'Humedad del Suelo' || label === 'Área afectada' ? 0 : 0.2,
         pointHitRadius: 10,
         spanGaps: true,
         fill: false,
@@ -51,6 +54,14 @@ function graphic(crop_indices_url) {
         },
       }))
       console.log(datasets)
+
+      const datasetValues = acronyms.flatMap(
+        (_, index) => jsonData.data[Object.keys(jsonData.data)[index + 1]]
+      )
+      maxYValue = Math.max(...datasetValues, maxYValue)
+
+      const nextHighestValue = Math.ceil(maxYValue / 0.1) * 0.1
+      maxYValue = nextHighestValue > 0.6 ? nextHighestValue : maxYValue
 
       const gridColor = '#0070F3'
       const textColor = '#FFFFFF'
@@ -96,7 +107,7 @@ function graphic(crop_indices_url) {
             y: {
               type: 'linear',
               min: 0,
-              max: 1,
+              max: maxYValue,
               position: 'left',
               stack: 'y',
               ticks: {
@@ -160,11 +171,11 @@ const getOrCreateLegendList = (chart, id) => {
 
   if (!listContainer) {
     listContainer = document.createElement('ul')
-    if (window.matchMedia('(max-width: 400px)').matches) {
+    if (window.matchMedia('(max-width: 480px)').matches) {
       listContainer.classList.add('chartLegend')
       listContainer.style.display = 'grid'
-      listContainer.style.gridTemplateColumns = '120px 120px'
-      listContainer.style.gridTemplateRows = '12px 12px 12px 12px'
+      listContainer.style.gridTemplateColumns = '170px 140px'
+      listContainer.style.gridTemplateRows = '12px 12px 12px'
       listContainer.style.flexDirection = 'row'
       listContainer.style.margin = 0
       listContainer.style.padding = 0
@@ -197,17 +208,17 @@ const htmlLegendPlugin = {
 
     items.forEach((item) => {
       const li = document.createElement('li')
-      if (window.matchMedia('(max-width: 400px)').matches) {
+      if (window.matchMedia('(max-width: 480px)').matches) {
         li.style.alignItems = 'center'
         li.style.cursor = 'pointer'
         li.style.display = 'flex'
         li.style.flexDirection = 'row'
-        li.style.margin = '1px 15px'
+        li.style.margin = '1px 5px'
         li.style.justifyContent = 'start'
         li.style.height = '12px'
-        li.style.width = '140px'
-        li.style.fontSize = '12px'
-        ;(li.style.fontFamily = 'Inter'), 'sans-serif'
+        li.style.width = '180px'
+        li.style.fontSize = '11px'
+        li.style.fontFamily = 'Inter', 'sans-serif'
       } else {
         li.style.alignItems = 'center'
         li.style.cursor = 'pointer'
@@ -216,7 +227,7 @@ const htmlLegendPlugin = {
         li.style.marginLeft = '10px'
         li.style.justifyContent = 'center'
         li.style.fontSize = '12px'
-        ;(li.style.fontFamily = 'Inter'), 'sans-serif'
+        li.style.fontFamily = 'Inter', 'sans-serif'
       }
 
       li.onclick = () => {
@@ -235,7 +246,7 @@ const htmlLegendPlugin = {
 
       // Color box
       const boxSpan = document.createElement('span')
-      if (window.matchMedia('(max-width: 400px)').matches) {
+      if (window.matchMedia('(max-width: 480px)').matches) {
         boxSpan.style.background = item.fillStyle
         boxSpan.style.borderColor = item.strokeStyle
         boxSpan.style.borderWidth = item.lineWidth + 'px'
