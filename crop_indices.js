@@ -1,10 +1,14 @@
-document.addEventListener('DOMContentLoaded', () => {
-  graphic()
-})
+function formatDate(date) {
+  const options = { month: 'short' }
+  const dateObj = new Date(date)
+  return `${dateObj.getDate()} ${dateObj.toLocaleString('es-ES', options)}`
+}
 
-function graphic() {
+let maxYValue = 0.6
+
+function graphic(crop_indices_url) {
   // fetch ('data or endpoint petition')
-  fetch('average_crop_indices_farm-0000000014_04-A-1-4-121-907.json')
+  fetch(crop_indices_url)
     .then((response) => response.json())
     .then((jsonData) => {
       const jsonDates = Object.values(jsonData.data.Dates)
@@ -12,7 +16,7 @@ function graphic() {
       console.log(acronyms)
       console.log(jsonDates)
 
-      const labels = jsonDates
+      const labels = jsonDates.map(formatDate)
       console.log(labels)
       const colors = [
         '#F8FC21',
@@ -33,18 +37,33 @@ function graphic() {
         borderColor: colors[index % colors.length],
         backgroundColor: colors[index % colors.length],
         borderWidth: 3,
-        tension: 0.1,
+        tension:
+          label === 'Humedad del Suelo' || label === 'Área afectada' ? 0 : 0.2,
         pointHitRadius: 10,
         spanGaps: true,
         fill: false,
         pointRadius: (context) => {
           return 0
         },
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              return `${label}: ${context.parsed.y.toFixed(2)}`
+            },
+          },
+        },
       }))
       console.log(datasets)
 
+      const datasetValues = acronyms.flatMap(
+        (_, index) => jsonData.data[Object.keys(jsonData.data)[index + 1]]
+      )
+      maxYValue = Math.max(...datasetValues, maxYValue)
+
+      const nextHighestValue = Math.ceil(maxYValue / 0.1) * 0.1
+      maxYValue = nextHighestValue > 0.6 ? nextHighestValue : maxYValue
+
       const gridColor = '#0070F3'
-      const gridColor2 = '#4c8aba'
       const textColor = '#FFFFFF'
 
       const config = {
@@ -88,7 +107,7 @@ function graphic() {
             y: {
               type: 'linear',
               min: 0,
-              max: 1,
+              max: maxYValue,
               position: 'left',
               stack: 'y',
               ticks: {
@@ -102,7 +121,7 @@ function graphic() {
             },
             x: {
               stacked: true,
-              offset: true,
+              offset: false,
               ticks: {
                 color: textColor,
                 beginAtZero: true,
@@ -152,13 +171,14 @@ const getOrCreateLegendList = (chart, id) => {
 
   if (!listContainer) {
     listContainer = document.createElement('ul')
-    if (window.matchMedia('(max-width: 400px)').matches) {
+    if (window.matchMedia('(max-width: 480px)').matches) {
       listContainer.classList.add('chartLegend')
-      listContainer.style.display = 'flex'
+      listContainer.style.display = 'grid'
+      listContainer.style.gridTemplateColumns = '170px 140px'
+      listContainer.style.gridTemplateRows = '12px 12px 12px'
       listContainer.style.flexDirection = 'row'
       listContainer.style.margin = 0
       listContainer.style.padding = 0
-      listContainer.style.flexWrap = 'wrap'
       listContainer.style.alignItems = 'center'
       listContainer.style.justifyContent = 'space-between'
     } else {
@@ -188,22 +208,26 @@ const htmlLegendPlugin = {
 
     items.forEach((item) => {
       const li = document.createElement('li')
-      if (window.matchMedia('(max-width: 400px)').matches) {
+      if (window.matchMedia('(max-width: 480px)').matches) {
         li.style.alignItems = 'center'
         li.style.cursor = 'pointer'
         li.style.display = 'flex'
         li.style.flexDirection = 'row'
-        li.style.margin = '1px 15px'
+        li.style.margin = '1px 5px'
         li.style.justifyContent = 'start'
         li.style.height = '12px'
-        li.style.width = '140px'
-        li.style.fontSize = '12px'
+        li.style.width = '180px'
+        li.style.fontSize = '11px'
+        li.style.fontFamily = 'Inter', 'sans-serif'
       } else {
         li.style.alignItems = 'center'
         li.style.cursor = 'pointer'
         li.style.display = 'flex'
         li.style.flexDirection = 'row'
-        li.style.marginLeft = '20px'
+        li.style.marginLeft = '10px'
+        li.style.justifyContent = 'center'
+        li.style.fontSize = '12px'
+        li.style.fontFamily = 'Inter', 'sans-serif'
       }
 
       li.onclick = () => {
@@ -222,25 +246,24 @@ const htmlLegendPlugin = {
 
       // Color box
       const boxSpan = document.createElement('span')
-      if (window.matchMedia('(max-width: 400px)').matches) {
+      if (window.matchMedia('(max-width: 480px)').matches) {
         boxSpan.style.background = item.fillStyle
         boxSpan.style.borderColor = item.strokeStyle
         boxSpan.style.borderWidth = item.lineWidth + 'px'
         boxSpan.style.display = 'flex'
         boxSpan.style.flexShrink = 0
         boxSpan.style.height = '12px'
-        boxSpan.style.width = '24px'
         boxSpan.style.marginRight = '10px'
+        boxSpan.style.width = '12px'
       } else {
         boxSpan.style.background = item.fillStyle
         boxSpan.style.borderColor = item.strokeStyle
         boxSpan.style.borderWidth = item.lineWidth + 'px'
         boxSpan.style.display = 'inline-block'
         boxSpan.style.flexShrink = 0
-        boxSpan.style.height = '20px'
-        boxSpan.style.width = '40px'
+        boxSpan.style.height = '12px'
+        boxSpan.style.width = '12px'
         boxSpan.style.marginRight = '10px'
-        
       }
 
       // Text
