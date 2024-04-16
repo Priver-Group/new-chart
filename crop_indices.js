@@ -54,9 +54,12 @@ function graphic(crop_indices_url) {
       const datasets = acronyms.map((label, index) => ({
         label,
         data: jsonData.data[Object.keys(jsonData.data)[index + 1]],
+        type: label === 'Área afectada' ? 'bar' : 'line',
         borderColor: colors[index % colors.length],
         backgroundColor: colors[index % colors.length],
-        borderWidth: 3,
+        borderWidth: label === 'Área afectada' ? 0 : 3,
+        categoryPercentage:  label === 'Área afectada' ? 0.6 : 0,
+        barPercentage:  label === 'Área afectada' ? 0.6 : 0,
         tension:
           label === 'Humedad del Suelo' || label === 'Área afectada' ? 0 : 0.3,
         pointHitRadius: 10,
@@ -200,7 +203,7 @@ const getOrCreateLegendList = (chart, id) => {
     if (window.matchMedia('(max-width: 480px)').matches) {
       listContainer.classList.add('chartLegend')
       listContainer.style.display = 'grid'
-      listContainer.style.gridTemplateColumns = '170px 170px'
+      listContainer.style.gridTemplateColumns = '170px 140px'
       listContainer.style.gridTemplateRows = '12px 12px 12px'
       listContainer.style.flexDirection = 'row'
       listContainer.style.margin = 0
