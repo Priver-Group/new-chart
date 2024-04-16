@@ -150,10 +150,10 @@ function graphic(crop_indices_url) {
                 beginAtZero: true,
                 minRotation: window.matchMedia('(max-width: 480px)').matches
                   ? 45
-                  : 0,
+                  : 50,
                 maxRotation: window.matchMedia('(max-width: 480px)').matches
                   ? 45
-                  : 0,
+                  : 50,
               },
               grid: {
                 display: true,
